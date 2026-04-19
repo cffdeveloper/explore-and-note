@@ -18,7 +18,15 @@ type Entry = {
   ai_analysis: string | null;
   ai_next_day: string | null;
   ai_draft: string | null;
+  ai_tomorrow_plan: TomorrowPlan | null;
   analyzed_at: string | null;
+};
+
+type TomorrowPlan = {
+  summary?: string;
+  blocks?: Array<{ start: string; end: string; activity: string; focus: string }>;
+  non_negotiables?: string[];
+  watch_outs?: string[];
 };
 
 export function JournalPanel() {
@@ -27,6 +35,8 @@ export function JournalPanel() {
   const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+  const [planning, setPlanning] = useState(false);
+  const [tomorrowNotes, setTomorrowNotes] = useState("");
 
   useEffect(() => {
     let cancel = false;
@@ -63,6 +73,19 @@ export function JournalPanel() {
     toast.success("Analyzed");
     const { data: fresh } = await supabase.from("journal_entries").select("*").eq("entry_date", date).maybeSingle();
     setEntry(fresh ?? null);
+  };
+
+  const planTomorrow = async () => {
+    setPlanning(true);
+    if (!entry || entry.content !== content) await save();
+    const { data, error } = await supabase.functions.invoke("plan-tomorrow", {
+      body: { entry_date: date, tomorrow_notes: tomorrowNotes },
+    });
+    setPlanning(false);
+    if (error || data?.error) { toast.error(error?.message || data?.error || "Plan failed"); return; }
+    toast.success("Tomorrow planned");
+    const { data: fresh } = await supabase.from("journal_entries").select("*").eq("entry_date", date).maybeSingle();
+    setEntry(fresh as Entry ?? null);
   };
 
   const isToday = date === todayISO();
