@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { CATEGORIES } from "@/lib/blueprint-data";
 import { SiteHeader } from "@/components/SiteHeader";
 import { ArrowRight } from "lucide-react";
+import { getPillarIcon } from "@/lib/pillar-icons";
+import heroImg from "@/assets/hero-polymath.jpg";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -9,6 +11,10 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "The Blueprint — 10-Year Roadmap" },
       { name: "description", content: "3 Careers. 5 Skills. A decade of deliberate practice. Track notes, links, and files for every sub-skill." },
+      { property: "og:title", content: "The Blueprint — 10-Year Roadmap" },
+      { property: "og:description", content: "3 Careers. 5 Skills. A decade of deliberate practice." },
+      { property: "og:image", content: heroImg },
+      { name: "twitter:image", content: heroImg },
     ],
   }),
 });
@@ -23,7 +29,15 @@ function Index() {
 
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-border">
-        <div className="absolute inset-0 blueprint-grid opacity-40" />
+        <img
+          src={heroImg}
+          alt="Renaissance polymath surrounded by astrolabes and constellations"
+          className="absolute inset-0 w-full h-full object-cover opacity-25"
+          width={1920}
+          height={1080}
+        />
+        <div className="absolute inset-0 blueprint-grid opacity-30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
         <div className="relative max-w-7xl mx-auto px-4 lg:px-8 py-20 lg:py-28">
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gold/40 text-gold text-xs uppercase tracking-widest mb-6">
@@ -91,6 +105,7 @@ function CategoryCard({ c, index }: { c: typeof CATEGORIES[number]; index: numbe
     (acc, s) => acc + s.subs.reduce((a, sb) => a + sb.items.length, 0),
     0
   );
+  const icon = getPillarIcon(c.slug);
   return (
     <Link
       to="/$slug"
@@ -98,6 +113,17 @@ function CategoryCard({ c, index }: { c: typeof CATEGORIES[number]; index: numbe
       className="group relative border border-border rounded-xl p-6 bg-card/40 hover:bg-card hover:border-gold/60 transition-all overflow-hidden"
     >
       <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-gold/5 group-hover:bg-gold/10 transition-colors" />
+      {icon && (
+        <img
+          src={icon}
+          alt=""
+          aria-hidden
+          loading="lazy"
+          width={120}
+          height={120}
+          className="absolute -bottom-4 -right-4 w-28 h-28 object-contain opacity-30 group-hover:opacity-60 transition-opacity"
+        />
+      )}
       <div className="relative">
         <div className="flex items-center justify-between mb-3">
           <span className="text-[10px] uppercase tracking-widest text-gold font-medium">{c.number}</span>
@@ -105,6 +131,16 @@ function CategoryCard({ c, index }: { c: typeof CATEGORIES[number]; index: numbe
             {String(index).padStart(2, "0")}
           </span>
         </div>
+        {icon && (
+          <img
+            src={icon}
+            alt={`${c.title} emblem`}
+            loading="lazy"
+            width={56}
+            height={56}
+            className="w-14 h-14 object-contain mb-3 drop-shadow-[0_0_20px_color-mix(in_oklab,var(--gold)_30%,transparent)]"
+          />
+        )}
         <h3 className="text-xl font-display font-semibold mb-2 leading-snug">{c.title}</h3>
         <p className="text-sm text-muted-foreground mb-6 line-clamp-2">{c.short}</p>
         <div className="flex items-center justify-between text-xs">
