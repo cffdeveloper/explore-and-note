@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import type { Category } from "@/lib/blueprint-data";
+import { getPillarIcon } from "@/lib/pillar-icons";
 
 type Props = {
   cat: Category;
@@ -28,16 +29,28 @@ export function PillarSidebar({ cat, selectedId, onSelect }: Props) {
 
   return (
     <aside className="w-full lg:w-80 lg:flex-shrink-0 lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:overflow-y-auto border-b lg:border-b-0 lg:border-r border-border bg-card/30">
-      <div className="p-4 border-b border-border">
-        <div className="text-[10px] uppercase tracking-[0.3em] text-gold mb-1">{cat.number}</div>
-        <button
-          onClick={() => onSelect(cat.slug, cat.title)}
-          className={`text-left font-display text-base font-semibold leading-tight hover:text-gold transition-colors ${
-            selectedId === cat.slug ? "text-gold" : ""
-          }`}
-        >
-          {cat.title}
-        </button>
+      <div className="p-4 border-b border-border flex items-start gap-3">
+        {getPillarIcon(cat.slug) && (
+          <img
+            src={getPillarIcon(cat.slug)}
+            alt=""
+            aria-hidden
+            width={48}
+            height={48}
+            className="w-12 h-12 object-contain flex-shrink-0 drop-shadow-[0_0_12px_color-mix(in_oklab,var(--gold)_40%,transparent)]"
+          />
+        )}
+        <div className="min-w-0">
+          <div className="text-[10px] uppercase tracking-[0.3em] text-gold mb-1">{cat.number}</div>
+          <button
+            onClick={() => onSelect(cat.slug, cat.title)}
+            className={`text-left font-display text-base font-semibold leading-tight hover:text-gold transition-colors ${
+              selectedId === cat.slug ? "text-gold" : ""
+            }`}
+          >
+            {cat.title}
+          </button>
+        </div>
       </div>
 
       <nav className="p-2 space-y-1">

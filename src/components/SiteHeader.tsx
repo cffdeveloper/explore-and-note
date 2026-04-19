@@ -12,9 +12,14 @@ export function SiteHeader() {
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-2">
           <Link to="/" className="flex items-center gap-2 group flex-shrink-0">
-            <div className="w-8 h-8 rounded-md bg-gold flex items-center justify-center text-ink font-bold font-display">
-              B
-            </div>
+            <img
+              src="/favicon.png"
+              alt="The Blueprint"
+              width={32}
+              height={32}
+              className="w-8 h-8 object-contain rounded-md drop-shadow-[0_0_8px_color-mix(in_oklab,var(--gold)_40%,transparent)]"
+            />
+            
             <div className="leading-tight hidden sm:block">
               <div className="font-display text-base font-semibold">The Blueprint</div>
               <div className="text-[10px] uppercase tracking-widest text-muted-foreground">10-Year Roadmap</div>
