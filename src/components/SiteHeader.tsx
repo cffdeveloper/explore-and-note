@@ -1,7 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { CATEGORIES } from "@/lib/blueprint-data";
 import { useState } from "react";
-import { Menu, X, Sparkles, Compass, Timer } from "lucide-react";
+import { Menu, X, CalendarDays, Compass, Timer } from "lucide-react";
 
 export function SiteHeader() {
   const location = useLocation();
