@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ScheduleRouteImport } from './routes/schedule'
 import { Route as OpportunitiesRouteImport } from './routes/opportunities'
 import { Route as JourneyRouteImport } from './routes/journey'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ScheduleRoute = ScheduleRouteImport.update({
+  id: '/schedule',
+  path: '/schedule',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OpportunitiesRoute = OpportunitiesRouteImport.update({
   id: '/opportunities',
   path: '/opportunities',
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/events': typeof EventsRoute
   '/journey': typeof JourneyRoute
   '/opportunities': typeof OpportunitiesRoute
+  '/schedule': typeof ScheduleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/events': typeof EventsRoute
   '/journey': typeof JourneyRoute
   '/opportunities': typeof OpportunitiesRoute
+  '/schedule': typeof ScheduleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,27 @@ export interface FileRoutesById {
   '/events': typeof EventsRoute
   '/journey': typeof JourneyRoute
   '/opportunities': typeof OpportunitiesRoute
+  '/schedule': typeof ScheduleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$slug' | '/events' | '/journey' | '/opportunities'
+  fullPaths:
+    | '/'
+    | '/$slug'
+    | '/events'
+    | '/journey'
+    | '/opportunities'
+    | '/schedule'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$slug' | '/events' | '/journey' | '/opportunities'
-  id: '__root__' | '/' | '/$slug' | '/events' | '/journey' | '/opportunities'
+  to: '/' | '/$slug' | '/events' | '/journey' | '/opportunities' | '/schedule'
+  id:
+    | '__root__'
+    | '/'
+    | '/$slug'
+    | '/events'
+    | '/journey'
+    | '/opportunities'
+    | '/schedule'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,10 +99,18 @@ export interface RootRouteChildren {
   EventsRoute: typeof EventsRoute
   JourneyRoute: typeof JourneyRoute
   OpportunitiesRoute: typeof OpportunitiesRoute
+  ScheduleRoute: typeof ScheduleRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/schedule': {
+      id: '/schedule'
+      path: '/schedule'
+      fullPath: '/schedule'
+      preLoaderRoute: typeof ScheduleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/opportunities': {
       id: '/opportunities'
       path: '/opportunities'
@@ -125,7 +155,17 @@ const rootRouteChildren: RootRouteChildren = {
   EventsRoute: EventsRoute,
   JourneyRoute: JourneyRoute,
   OpportunitiesRoute: OpportunitiesRoute,
+  ScheduleRoute: ScheduleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
