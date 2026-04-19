@@ -14,7 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      item_attachments: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          kind: string
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string | null
+          title: string | null
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          kind: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string | null
+          title?: string | null
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          kind?: string
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string | null
+          title?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
+      item_notes: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          item_id: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          item_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
