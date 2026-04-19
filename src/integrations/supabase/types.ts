@@ -79,6 +79,7 @@ export type Database = {
           ai_analysis: string | null
           ai_draft: string | null
           ai_next_day: string | null
+          ai_tomorrow_plan: Json | null
           analyzed_at: string | null
           content: string
           created_at: string
@@ -90,6 +91,7 @@ export type Database = {
           ai_analysis?: string | null
           ai_draft?: string | null
           ai_next_day?: string | null
+          ai_tomorrow_plan?: Json | null
           analyzed_at?: string | null
           content?: string
           created_at?: string
@@ -101,6 +103,7 @@ export type Database = {
           ai_analysis?: string | null
           ai_draft?: string | null
           ai_next_day?: string | null
+          ai_tomorrow_plan?: Json | null
           analyzed_at?: string | null
           content?: string
           created_at?: string
@@ -170,6 +173,75 @@ export type Database = {
           source?: string | null
           title?: string
           url?: string | null
+        }
+        Relationships: []
+      }
+      schedule_blocks: {
+        Row: {
+          activity: string
+          category: string | null
+          created_at: string
+          day_of_week: number | null
+          end_time: string
+          id: string
+          sort_order: number
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          activity: string
+          category?: string | null
+          created_at?: string
+          day_of_week?: number | null
+          end_time: string
+          id?: string
+          sort_order?: number
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          activity?: string
+          category?: string | null
+          created_at?: string
+          day_of_week?: number | null
+          end_time?: string
+          id?: string
+          sort_order?: number
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      topic_links: {
+        Row: {
+          created_at: string
+          id: string
+          item_id: string
+          label: string | null
+          links: Json
+          overview: string | null
+          refreshed_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_id: string
+          label?: string | null
+          links?: Json
+          overview?: string | null
+          refreshed_at?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_id?: string
+          label?: string | null
+          links?: Json
+          overview?: string | null
+          refreshed_at?: string
+          updated_at?: string
         }
         Relationships: []
       }

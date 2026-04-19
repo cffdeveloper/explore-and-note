@@ -36,14 +36,26 @@ Deno.serve(async (req) => {
     // Same-day attachments + notes (created_at on that calendar day)
     const dayStart = `${entry_date}T00:00:00Z`;
     const dayEnd = `${entry_date}T23:59:59Z`;
-    const [{ data: dayAtts }, { data: dayNotes }, { data: pastEntries }] = await Promise.all([
+    const [
+      { data: dayAtts },
+      { data: dayNotes },
+      { data: pastEntries },
+      { data: schedule },
+    ] = await Promise.all([
       supabase.from("item_attachments").select("item_id, kind, title, url")
         .gte("created_at", dayStart).lte("created_at", dayEnd),
       supabase.from("item_notes").select("item_id, content, updated_at")
         .gte("updated_at", dayStart).lte("updated_at", dayEnd),
       supabase.from("journal_entries").select("entry_date, content, ai_analysis")
         .lt("entry_date", entry_date).order("entry_date", { ascending: false }).limit(5),
+      supabase.from("schedule_blocks").select("start_time, end_time, activity, category")
+        .order("sort_order", { ascending: true }),
     ]);
+
+    const scheduleStr =
+      (schedule ?? [])
+        .map((s) => `- ${s.start_time}–${s.end_time}  ${s.activity} [${s.category ?? "-"}]`)
+        .join("\n") || "(no schedule defined)";
 
     const todayLearning = [
       ...(dayAtts ?? []).map((a) => `• [${a.item_id}] ${a.kind}: ${a.title || a.url}`),
@@ -54,18 +66,22 @@ Deno.serve(async (req) => {
       .map((e) => `${e.entry_date}: ${e.content.slice(0, 250)}`)
       .join("\n") || "(no prior entries)";
 
-    const systemPrompt = `You are a polymath learning coach for a 20-year-old on a deliberate 10-year plan across 8 pillars (3 careers + 5 multiplier skills). Your job: read TODAY's day-account + what they uploaded/noted today, compare against their recent days, and produce honest, actionable feedback.
+    const systemPrompt = `You are a polymath performance coach for a 20-year-old on a deliberate 10-year plan across 8 pillars (data science, real estate, trading, sales, negotiation, law, public speaking, business). The learner has a FIXED daily schedule. Compare what they ACTUALLY did against their planned blocks and call out drift, wasted hours, and which pillars got short-changed.
 
 Return STRICT JSON (no markdown fences):
 {
-  "analysis": "3-5 sentences on what they actually did today, what worked, what was wasted time, gaps vs goals.",
-  "next_day": "Concrete plan for tomorrow: 3-5 bullet items, time-boxed if possible.",
-  "draft": "A 2-3 sentence updated 'who you are becoming' draft — refresh based on cumulative evidence."
+  "analysis": "3-5 sentences. Compare today vs the schedule block-by-block. Be honest about wasted time and pillar imbalance.",
+  "next_day": "Concrete plan for tomorrow: 3-5 bullet items, time-boxed against the schedule.",
+  "draft": "A 2-3 sentence updated 'who you are becoming' draft — refresh based on cumulative evidence.",
+  "weak_pillars": ["pillar name", ...]
 }`;
 
     const userPrompt = `DATE: ${entry_date}
 
-DAY ACCOUNT (what the learner says they did):
+THE LEARNER'S FIXED DAILY SCHEDULE (non-negotiable structure):
+${scheduleStr}
+
+DAY ACCOUNT (what the learner says they actually did):
 ${entry.content}
 
 LEARNING ARTIFACTS ADDED TODAY:
