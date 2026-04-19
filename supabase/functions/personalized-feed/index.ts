@@ -1,7 +1,8 @@
 // Edge function: personalized-feed
-// Reads all notes + attachment titles from DB, asks Gemini (with Google Search
-// grounding) to find current real-world events or opportunities matching the
-// user's learning trajectory. Caches results in `recommendations`.
+// Reads notes + attachment titles, asks Gemini (with Google Search grounding)
+// to find current real-world events or opportunities matching the learner.
+// EVENTS = repository: appended via upsert, dedupe on (kind, url), nothing deleted.
+// OPPORTUNITIES = deep intel: positioning, exact next actions, money angle, outreach drafts.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
@@ -17,7 +18,8 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { kind } = (await req.json()) as { kind: Kind };
+    const body = await req.json().catch(() => ({}));
+    const kind = (body.kind ?? "event") as Kind;
     if (kind !== "event" && kind !== "opportunity") {
       return json({ error: "Invalid kind" }, 400);
     }
@@ -29,7 +31,7 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
-    // Pull ALL notes + attachment titles to build a learning profile.
+    // Build learner profile from notes + attachments
     const [{ data: notes }, { data: atts }] = await Promise.all([
       supabase.from("item_notes").select("item_id, content").not("content", "eq", ""),
       supabase.from("item_attachments").select("item_id, title, url, kind"),
@@ -38,35 +40,66 @@ Deno.serve(async (req) => {
     const notesText = (notes ?? [])
       .map((n) => `[${n.item_id}] ${n.content}`)
       .join("\n")
-      .slice(0, 12000);
+      .slice(0, 14000);
     const attsText = (atts ?? [])
       .map((a) => `[${a.item_id}] ${a.kind}: ${a.title || a.url}`)
       .join("\n")
-      .slice(0, 4000);
+      .slice(0, 5000);
 
     const profileBlock = (notesText || attsText)
       ? `LEARNER NOTES:\n${notesText}\n\nLEARNER LINKS/FILES:\n${attsText}`
-      : "The learner has not added any notes yet. Use a broad mix of pillars: Data Science, Real Estate, Fitness Coaching, Spirituality, Languages, Investing, Communication, Creativity.";
+      : "Learner has not added notes yet. Use a broad mix across pillars: Data Science, Real Estate, Trading, Sales, Negotiation, Public Speaking, Law, Business.";
 
     const today = new Date().toISOString().slice(0, 10);
-    const target = kind === "event"
-      ? `real-world EVENTS (conferences, workshops, meetups, hackathons, retreats, summits) happening within the next 6 months from ${today}`
-      : `OPPORTUNITIES (grants, fellowships, scholarships, competitions, open calls, accelerators, paid programs) with deadlines in the next 6 months from ${today}`;
 
-    const systemPrompt = `You are a personal scout for a polymath learner. Use Google Search to find CURRENT, REAL ${target} that match their learning trajectory.
+    let systemPrompt: string;
+    let userPrompt: string;
 
-Return ONLY a JSON array (no prose, no markdown fences) of 8-12 items. Each item:
+    if (kind === "event") {
+      systemPrompt = `You are a personal scout for a polymath learner age 20 in Kenya building careers in Data Science, Real Estate, Trading + 5 skills (Sales, Negotiation, Public Speaking, Law, Business).
+Use Google Search to find CURRENT, REAL events (conferences, workshops, meetups, hackathons, retreats, summits, bootcamps) happening within the next 9 months from ${today}. Include both online and in-person. Prioritize ones the learner could realistically attend or join remotely.
+
+Return ONLY a JSON array (no prose, no markdown fences) of 10-15 events. Each item:
+{
+  "title": string,
+  "url": string (real working URL — verify via search),
+  "date_text": string (human-readable date / window),
+  "deadline_at": string (ISO 8601 date when event STARTS, best effort, e.g. "2026-05-12"),
+  "pillar": string (one of: data-science, real-estate, trading, sales, negotiation, public-speaking, law, business, general),
+  "reason": string (1-2 sentences: why THIS learner should care, tied to their notes),
+  "source": string (host org)
+}
+
+Avoid repeats of well-known recurring events the learner likely already knows. Prefer fresh, specific, actionable picks.`;
+
+      userPrompt = `${profileBlock}\n\nFind upcoming events. Return JSON array only.`;
+    } else {
+      systemPrompt = `You are an aggressive opportunity scout + positioning strategist for a polymath learner age 20 in Kenya.
+Use Google Search across the public web — including X/Twitter posts, LinkedIn posts, Reddit, Hacker News, GitHub, news sites, public RFPs, grant pages, accelerator pages, fellowship pages, hiring pages, bounty platforms — to find CURRENT real opportunities where this learner can win money, influence, or leverage in the next 6 months.
+
+For each opportunity, do not just list it — give intel like a McKinsey strategist: who they are, why they fit, the exact next 3 actions, the money angle, and a draft outreach message they can copy-paste.
+
+Return ONLY a JSON array (no prose, no markdown fences) of 8-12 opportunities. Each item:
 {
   "title": string,
   "url": string (real working URL),
-  "date_text": string (date or deadline, human-readable),
-  "reason": string (1-2 sentences explaining why it matches THIS learner based on their notes),
-  "source": string (publisher / hosting org)
+  "date_text": string (deadline or window),
+  "deadline_at": string (ISO 8601, best effort),
+  "pillar": string (data-science | real-estate | trading | sales | negotiation | public-speaking | law | business | general),
+  "source": string (org or platform),
+  "reason": string (1 sentence: why this matches the learner specifically),
+  "intel": {
+    "positioning": string (how the learner should position themselves — 1-2 sentences),
+    "actions": [string, string, string] (exactly 3 concrete next actions, imperative voice),
+    "money_angle": string (how this leads to money — fee, retainer, equity, prize, leverage),
+    "outreach_draft": string (a 2-4 sentence DM/email/application paragraph the learner can copy-paste, personalized using their notes)
+  }
 }
 
-Prioritize variety across their interests. Avoid duplicates. Only include items with verifiable URLs from your search.`;
+Be specific, contrarian, and high-leverage. No generic advice. Verify all URLs via search.`;
 
-    const userPrompt = `${profileBlock}\n\nFind ${target}. Return JSON array only.`;
+      userPrompt = `${profileBlock}\n\nFind high-leverage opportunities + give full intel. Return JSON array only.`;
+    }
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -93,12 +126,10 @@ Prioritize variety across their interests. Avoid duplicates. Only include items 
 
     const aiJson = await aiRes.json();
     const content: string = aiJson.choices?.[0]?.message?.content ?? "";
-
-    // Strip code fences if any
     const cleaned = content.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/, "").trim();
-    let items: Array<{ title: string; url?: string; date_text?: string; reason?: string; source?: string }> = [];
+
+    let items: Array<Record<string, unknown>> = [];
     try {
-      // Try to find JSON array in the text
       const match = cleaned.match(/\[[\s\S]*\]/);
       items = JSON.parse(match ? match[0] : cleaned);
     } catch (e) {
@@ -106,26 +137,38 @@ Prioritize variety across their interests. Avoid duplicates. Only include items 
       return json({ error: "Could not parse AI response", raw: cleaned.slice(0, 1000) }, 500);
     }
 
-    // Replace existing recommendations of this kind
-    await supabase.from("recommendations").delete().eq("kind", kind);
-
     const rows = items
-      .filter((i) => i && i.title)
-      .map((i) => ({
-        kind,
-        title: String(i.title).slice(0, 500),
-        url: i.url ? String(i.url).slice(0, 1000) : null,
-        date_text: i.date_text ? String(i.date_text).slice(0, 200) : null,
-        reason: i.reason ? String(i.reason).slice(0, 1000) : null,
-        source: i.source ? String(i.source).slice(0, 200) : null,
-      }));
+      .filter((i) => i && typeof i.title === "string" && typeof i.url === "string" && i.url)
+      .map((i) => {
+        let deadline_at: string | null = null;
+        if (typeof i.deadline_at === "string" && i.deadline_at) {
+          const d = new Date(i.deadline_at);
+          if (!isNaN(d.getTime())) deadline_at = d.toISOString();
+        }
+        return {
+          kind,
+          title: String(i.title).slice(0, 500),
+          url: String(i.url).slice(0, 1000),
+          date_text: i.date_text ? String(i.date_text).slice(0, 200) : null,
+          deadline_at,
+          pillar: i.pillar ? String(i.pillar).slice(0, 50) : null,
+          reason: i.reason ? String(i.reason).slice(0, 1000) : null,
+          source: i.source ? String(i.source).slice(0, 200) : null,
+          intel: kind === "opportunity" && i.intel && typeof i.intel === "object" ? i.intel : null,
+        };
+      });
 
+    let inserted = 0;
     if (rows.length > 0) {
-      const { error: insErr } = await supabase.from("recommendations").insert(rows);
-      if (insErr) console.error("insert err", insErr);
+      // Upsert on (kind, url) — dedupes silently, refreshes intel/dates if AI returns same URL
+      const { error: upErr, count } = await supabase
+        .from("recommendations")
+        .upsert(rows, { onConflict: "kind,url", count: "exact" });
+      if (upErr) console.error("upsert err", upErr);
+      inserted = count ?? rows.length;
     }
 
-    return json({ ok: true, count: rows.length });
+    return json({ ok: true, count: inserted, returned: rows.length });
   } catch (e) {
     console.error("personalized-feed error", e);
     return json({ error: e instanceof Error ? e.message : "Unknown error" }, 500);
