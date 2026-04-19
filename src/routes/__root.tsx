@@ -28,7 +28,12 @@ export const Route = createRootRoute({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5" },
+      { name: "theme-color", content: "#13182a" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Blueprint" },
+      { name: "mobile-web-app-capable", content: "yes" },
       { title: "The Blueprint — 10-Year Roadmap" },
       { name: "description", content: "Personal mastery roadmap: 3 careers and 5 skills, with notes, links and files for every sub-skill." },
       { name: "author", content: "The Blueprint" },
@@ -38,6 +43,7 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "apple-touch-icon", href: "/favicon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
