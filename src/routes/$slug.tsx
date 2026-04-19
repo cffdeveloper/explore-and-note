@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { getCategory } from "@/lib/blueprint-data";
+import { getCategory, type Category } from "@/lib/blueprint-data";
 import { SiteHeader } from "@/components/SiteHeader";
 import { ItemCard } from "@/components/ItemCard";
 import { ChevronLeft } from "lucide-react";
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/$slug")({
 });
 
 function CategoryPage() {
-  const { cat } = Route.useLoaderData();
+  const { cat } = Route.useLoaderData() as { cat: Category };
 
   return (
     <div className="min-h-screen">
