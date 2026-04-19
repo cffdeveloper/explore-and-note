@@ -62,7 +62,7 @@ export function SiteHeader() {
                 location.pathname === "/events" ? "bg-gold text-ink" : "border border-gold/40 text-gold hover:bg-gold/10"
               }`}
             >
-              <Sparkles size={12} /> Events
+              <CalendarDays size={12} /> Events
             </Link>
             <Link
               to="/opportunities"
@@ -101,7 +101,7 @@ export function SiteHeader() {
               <Timer size={14} /> Journey timer
             </Link>
             <Link to="/events" onClick={() => setOpen(false)} className="px-3 py-2 rounded-md text-sm border border-gold/40 text-gold flex items-center gap-2">
-              <Sparkles size={14} /> Events for me
+              <CalendarDays size={14} /> Events for me
             </Link>
             <Link to="/opportunities" onClick={() => setOpen(false)} className="px-3 py-2 rounded-md text-sm border border-gold/40 text-gold flex items-center gap-2">
               <Compass size={14} /> Opportunities for me
