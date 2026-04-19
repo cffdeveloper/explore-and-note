@@ -98,3 +98,27 @@
     background-size: 32px 32px;
   }
 }
+
+/* Hide scrollbars everywhere but keep scrolling */
+* {
+  scrollbar-width: none;            /* Firefox */
+  -ms-overflow-style: none;         /* IE/Edge */
+}
+*::-webkit-scrollbar {              /* Chrome / Safari */
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+html, body {
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+  text-rendering: optimizeLegibility;
+}
+
+/* Safe-area padding for installed PWA on iOS notched devices */
+body {
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
