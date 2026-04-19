@@ -31,24 +31,35 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
-    // Build learner profile from notes + attachments
-    const [{ data: notes }, { data: atts }] = await Promise.all([
-      supabase.from("item_notes").select("item_id, content").not("content", "eq", ""),
-      supabase.from("item_attachments").select("item_id, title, url, kind"),
+    // Build deep learner profile: notes + attachments + journal + journey
+    const [notesRes, attsRes, journalRes, journeyRes] = await Promise.all([
+      supabase.from("item_notes").select("item_id, content, updated_at").not("content", "eq", "").order("updated_at", { ascending: false }).limit(200),
+      supabase.from("item_attachments").select("item_id, title, url, kind, created_at").order("created_at", { ascending: false }).limit(200),
+      supabase.from("journal_entries").select("entry_date, content, ai_analysis, ai_draft").order("entry_date", { ascending: false }).limit(30),
+      supabase.from("journey").select("started_at, duration_years").order("created_at", { ascending: false }).limit(1).maybeSingle(),
     ]);
 
-    const notesText = (notes ?? [])
-      .map((n) => `[${n.item_id}] ${n.content}`)
-      .join("\n")
-      .slice(0, 14000);
-    const attsText = (atts ?? [])
-      .map((a) => `[${a.item_id}] ${a.kind}: ${a.title || a.url}`)
-      .join("\n")
-      .slice(0, 5000);
+    const notes = notesRes.data ?? [];
+    const atts = attsRes.data ?? [];
+    const journal = journalRes.data ?? [];
+    const journey = journeyRes.data;
 
-    const profileBlock = (notesText || attsText)
-      ? `LEARNER NOTES:\n${notesText}\n\nLEARNER LINKS/FILES:\n${attsText}`
-      : "Learner has not added notes yet. Use a broad mix across pillars: Data Science, Real Estate, Trading, Sales, Negotiation, Public Speaking, Law, Business.";
+    const notesText = notes.map((n) => `[${n.item_id}] ${n.content}`).join("\n").slice(0, 14000);
+    const attsText = atts.map((a) => `[${a.item_id}] ${a.kind}: ${a.title || a.url}`).join("\n").slice(0, 5000);
+    const journalText = journal.map((j) => `(${j.entry_date}) ${j.content}${j.ai_draft ? ` | becoming: ${j.ai_draft}` : ""}`).join("\n").slice(0, 8000);
+
+    let journeyLine = "Journey not started yet.";
+    if (journey?.started_at) {
+      const startMs = new Date(journey.started_at).getTime();
+      const elapsedDays = Math.floor((Date.now() - startMs) / 86400000);
+      const totalDays = (journey.duration_years ?? 10) * 365;
+      journeyLine = `Day ${elapsedDays} of ${totalDays} in a ${journey.duration_years ?? 10}-year polymath sprint (started ${journey.started_at.slice(0,10)}).`;
+    }
+
+    const hasAnyContext = notesText || attsText || journalText;
+    const profileBlock = hasAnyContext
+      ? `JOURNEY: ${journeyLine}\n\nDAILY JOURNAL (most recent first):\n${journalText || "(none yet)"}\n\nLEARNER NOTES:\n${notesText || "(none yet)"}\n\nLEARNER LINKS/FILES:\n${attsText || "(none yet)"}`
+      : `JOURNEY: ${journeyLine}\n\nNo notes/journal yet. Use a broad mix across all 8 pillars: Data Science, Real Estate, Trading, Sales, Negotiation, Public Speaking, Law, Business.`;
 
     const today = new Date().toISOString().slice(0, 10);
 
@@ -74,31 +85,38 @@ Avoid repeats of well-known recurring events the learner likely already knows. P
 
       userPrompt = `${profileBlock}\n\nFind upcoming events. Return JSON array only.`;
     } else {
-      systemPrompt = `You are an aggressive opportunity scout + positioning strategist for a polymath learner age 20 in Kenya.
-Use Google Search across the public web — including X/Twitter posts, LinkedIn posts, Reddit, Hacker News, GitHub, news sites, public RFPs, grant pages, accelerator pages, fellowship pages, hiring pages, bounty platforms — to find CURRENT real opportunities where this learner can win money, influence, or leverage in the next 6 months.
+      systemPrompt = `You are an elite opportunity scout + positioning strategist + GAP ANALYST for a 20-year-old polymath in Kenya on a 10-year sprint across 8 pillars: Data Science, Real Estate, Trading, Sales, Negotiation, Public Speaking, Law, Business.
 
-For each opportunity, do not just list it — give intel like a McKinsey strategist: who they are, why they fit, the exact next 3 actions, the money angle, and a draft outreach message they can copy-paste.
+YOUR JOB has THREE layers, in this order:
 
-Return ONLY a JSON array (no prose, no markdown fences) of 8-12 opportunities. Each item:
+1. DEEP READ — Study the learner's journey day-count, daily journal entries, notes, and uploaded files. Build a precise mental model: what they actually know, what they're working on this week, what they're avoiding, where their momentum is, where it's stalling.
+
+2. GAP SCAN — Then scan the WHOLE relevant internet via Google Search (X/Twitter posts, LinkedIn posts, Reddit, Hacker News, GitHub, Product Hunt, news sites, public RFPs, grant pages, accelerator/fellowship pages, hiring pages, bounty platforms, Telegram/Discord communities, government tenders in Kenya/EAC, African VC announcements, prop trading firms, real estate syndication deals, legal-tech, sales SaaS, public speaking circuits like TEDx/Toastmasters open calls). Find CURRENT real opportunities (next 6 months) where this learner can capture money, influence, or compounding leverage.
+
+3. SPOT THE GAPS — Critically: do NOT just match what the learner already does. Surface opportunities in adjacent industries and money flows they are NOT yet exploiting but COULD plausibly enter given their profile (e.g. if they journal about real estate but never about REITs/mortgage tech/Airbnb arbitrage — flag that gap). Cover ALL 8 pillars across the returned set; never let one pillar dominate.
+
+For EACH opportunity give intel like a McKinsey strategist + an aggressive operator: positioning, exact next 3 actions, money angle, and a copy-paste outreach draft personalized using their journal/notes language.
+
+Return ONLY a JSON array (no prose, no markdown fences) of 10-14 opportunities, balanced across pillars. Each item:
 {
   "title": string,
-  "url": string (real working URL),
+  "url": string (real working URL — verify via search),
   "date_text": string (deadline or window),
   "deadline_at": string (ISO 8601, best effort),
   "pillar": string (data-science | real-estate | trading | sales | negotiation | public-speaking | law | business | general),
   "source": string (org or platform),
-  "reason": string (1 sentence: why this matches the learner specifically),
+  "reason": string (1-2 sentences: why this matches THIS learner specifically — quote or paraphrase their notes/journal if possible; if it's a GAP they're missing, say "GAP:" and explain),
   "intel": {
     "positioning": string (how the learner should position themselves — 1-2 sentences),
-    "actions": [string, string, string] (exactly 3 concrete next actions, imperative voice),
-    "money_angle": string (how this leads to money — fee, retainer, equity, prize, leverage),
-    "outreach_draft": string (a 2-4 sentence DM/email/application paragraph the learner can copy-paste, personalized using their notes)
+    "actions": [string, string, string] (exactly 3 concrete next actions, imperative voice, doable this week),
+    "money_angle": string (how this leads to money — fee, retainer, equity, prize, leverage, with rough $ band if reasonable),
+    "outreach_draft": string (a 2-4 sentence DM/email/application paragraph they can copy-paste)
   }
 }
 
-Be specific, contrarian, and high-leverage. No generic advice. Verify all URLs via search.`;
+Be specific, contrarian, high-leverage. No generic "join a community" advice. Verify all URLs via search. Refuse to repeat the same org twice.`;
 
-      userPrompt = `${profileBlock}\n\nFind high-leverage opportunities + give full intel. Return JSON array only.`;
+      userPrompt = `${profileBlock}\n\nDo a deep contextual read, scan the web, and surface 10-14 opportunities — including 2-4 that target GAPS in industries/money flows the learner is currently ignoring. Return JSON array only.`;
     }
 
     const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
