@@ -1,8 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { getCategory, type Category } from "@/lib/blueprint-data";
 import { SiteHeader } from "@/components/SiteHeader";
-import { ItemCard } from "@/components/ItemCard";
-import { ChevronLeft } from "lucide-react";
+import { PillarSidebar } from "@/components/PillarSidebar";
+import { AttachmentsPanel } from "@/components/AttachmentsPanel";
+import { useState } from "react";
 
 export const Route = createFileRoute("/$slug")({
   loader: ({ params }) => {
@@ -35,55 +36,53 @@ export const Route = createFileRoute("/$slug")({
 
 function CategoryPage() {
   const { cat } = Route.useLoaderData() as { cat: Category };
+  const [selected, setSelected] = useState<{ id: string; label: string }>({
+    id: cat.slug,
+    label: cat.title,
+  });
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <SiteHeader />
 
-      {/* Hero */}
+      <div className="flex-1 flex flex-col lg:flex-row">
+        <PillarSidebar
+          cat={cat}
+          selectedId={selected.id}
+          onSelect={(id, label) => setSelected({ id, label })}
+        />
+
+        <main className="flex-1 min-w-0">
+          {selected.id === cat.slug ? (
+            <PillarOverview cat={cat} />
+          ) : (
+            <div className="max-w-4xl mx-auto px-4 lg:px-8 py-8 lg:py-12">
+              <AttachmentsPanel itemId={selected.id} label={selected.label} />
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function PillarOverview({ cat }: { cat: Category }) {
+  return (
+    <>
       <section className="relative border-b border-border overflow-hidden">
         <div className="absolute inset-0 blueprint-grid opacity-30" />
-        <div className="relative max-w-5xl mx-auto px-4 lg:px-8 py-12 lg:py-16">
-          <Link to="/" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-gold mb-6">
-            <ChevronLeft size={14} /> All pillars
-          </Link>
+        <div className="relative max-w-4xl mx-auto px-4 lg:px-8 py-12 lg:py-16">
           <div className="text-[10px] uppercase tracking-[0.3em] text-gold mb-3">{cat.number}</div>
-          <h1 className="text-4xl lg:text-5xl font-display font-semibold mb-4 leading-tight">{cat.title}</h1>
+          <h1 className="text-3xl lg:text-5xl font-display font-semibold mb-4 leading-tight">{cat.title}</h1>
           <p className="text-base text-muted-foreground max-w-3xl leading-relaxed">{cat.intro}</p>
         </div>
       </section>
-
-      {/* Sections */}
-      <div className="max-w-5xl mx-auto px-4 lg:px-8 py-12 space-y-16">
-        {cat.sections.map((section) => (
-          <section key={section.id} id={section.id}>
-            <div className="flex items-baseline gap-3 mb-6 pb-3 border-b border-border">
-              <span className="font-display text-gold text-lg">{section.id}</span>
-              <h2 className="text-2xl font-display font-semibold">{section.title}</h2>
-            </div>
-
-            <div className="space-y-8">
-              {section.subs.map((sb) => (
-                <div key={sb.id}>
-                  <h3 className="text-sm uppercase tracking-widest text-muted-foreground mb-3 flex items-center gap-2">
-                    <span className="w-6 h-px bg-gold" />
-                    {sb.title}
-                  </h3>
-                  <div className="space-y-2">
-                    {sb.items.map((item) => (
-                      <ItemCard key={item.id} itemId={item.id} label={item.label} />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        ))}
+      <div className="max-w-4xl mx-auto px-4 lg:px-8 py-8">
+        <AttachmentsPanel itemId={cat.slug} label={`${cat.title} — Overview`} />
+        <p className="text-xs text-muted-foreground mt-8 italic">
+          Tip: pick any topic, subtopic, or sub-sub-skill from the left to add notes & files at that level.
+        </p>
       </div>
-
-      <footer className="border-t border-border py-8 text-center text-xs text-muted-foreground">
-        <Link to="/" className="hover:text-gold">← Back to The Blueprint</Link>
-      </footer>
-    </div>
+    </>
   );
 }

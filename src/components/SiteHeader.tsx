@@ -1,7 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { CATEGORIES } from "@/lib/blueprint-data";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Sparkles, Compass } from "lucide-react";
 
 export function SiteHeader() {
   const location = useLocation();
@@ -10,26 +10,26 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/80 border-b border-border">
       <div className="max-w-7xl mx-auto px-4 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2 group">
+        <div className="flex items-center justify-between h-16 gap-2">
+          <Link to="/" className="flex items-center gap-2 group flex-shrink-0">
             <div className="w-8 h-8 rounded-md bg-gold flex items-center justify-center text-ink font-bold font-display">
               B
             </div>
-            <div className="leading-tight">
+            <div className="leading-tight hidden sm:block">
               <div className="font-display text-base font-semibold">The Blueprint</div>
               <div className="text-[10px] uppercase tracking-widest text-muted-foreground">10-Year Roadmap</div>
             </div>
           </Link>
 
-          <nav className="hidden xl:flex items-center gap-1">
+          <nav className="hidden xl:flex items-center gap-1 flex-1 justify-center">
             {CATEGORIES.map((c) => {
-              const active = location.pathname.startsWith(`/${c.slug}`);
+              const active = location.pathname === `/${c.slug}`;
               return (
                 <Link
                   key={c.slug}
                   to="/$slug"
                   params={{ slug: c.slug }}
-                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  className={`px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
                     active
                       ? "bg-gold text-ink"
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary"
@@ -41,6 +41,25 @@ export function SiteHeader() {
               );
             })}
           </nav>
+
+          <div className="hidden md:flex items-center gap-1 flex-shrink-0">
+            <Link
+              to="/events"
+              className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                location.pathname === "/events" ? "bg-gold text-ink" : "border border-gold/40 text-gold hover:bg-gold/10"
+              }`}
+            >
+              <Sparkles size={12} /> Events
+            </Link>
+            <Link
+              to="/opportunities"
+              className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                location.pathname === "/opportunities" ? "bg-gold text-ink" : "border border-gold/40 text-gold hover:bg-gold/10"
+              }`}
+            >
+              <Compass size={12} /> Opportunities
+            </Link>
+          </div>
 
           <button
             className="xl:hidden p-2 rounded-md hover:bg-secondary"
@@ -65,6 +84,12 @@ export function SiteHeader() {
                 <span>{c.title}</span>
               </Link>
             ))}
+            <Link to="/events" onClick={() => setOpen(false)} className="px-3 py-2 rounded-md text-sm border border-gold/40 text-gold flex items-center gap-2">
+              <Sparkles size={14} /> Events for me
+            </Link>
+            <Link to="/opportunities" onClick={() => setOpen(false)} className="px-3 py-2 rounded-md text-sm border border-gold/40 text-gold flex items-center gap-2">
+              <Compass size={14} /> Opportunities for me
+            </Link>
           </div>
         )}
       </div>
