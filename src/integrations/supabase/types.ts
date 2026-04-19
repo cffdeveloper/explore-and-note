@@ -74,6 +74,63 @@ export type Database = {
         }
         Relationships: []
       }
+      journal_entries: {
+        Row: {
+          ai_analysis: string | null
+          ai_draft: string | null
+          ai_next_day: string | null
+          analyzed_at: string | null
+          content: string
+          created_at: string
+          entry_date: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          ai_analysis?: string | null
+          ai_draft?: string | null
+          ai_next_day?: string | null
+          analyzed_at?: string | null
+          content?: string
+          created_at?: string
+          entry_date: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          ai_analysis?: string | null
+          ai_draft?: string | null
+          ai_next_day?: string | null
+          analyzed_at?: string | null
+          content?: string
+          created_at?: string
+          entry_date?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      journey: {
+        Row: {
+          created_at: string
+          duration_years: number
+          id: string
+          started_at: string
+        }
+        Insert: {
+          created_at?: string
+          duration_years?: number
+          id?: string
+          started_at?: string
+        }
+        Update: {
+          created_at?: string
+          duration_years?: number
+          id?: string
+          started_at?: string
+        }
+        Relationships: []
+      }
       recommendations: {
         Row: {
           created_at: string

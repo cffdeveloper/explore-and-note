@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as OpportunitiesRouteImport } from './routes/opportunities'
+import { Route as JourneyRouteImport } from './routes/journey'
 import { Route as EventsRouteImport } from './routes/events'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
@@ -17,6 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const OpportunitiesRoute = OpportunitiesRouteImport.update({
   id: '/opportunities',
   path: '/opportunities',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JourneyRoute = JourneyRouteImport.update({
+  id: '/journey',
+  path: '/journey',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EventsRoute = EventsRouteImport.update({
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/events': typeof EventsRoute
+  '/journey': typeof JourneyRoute
   '/opportunities': typeof OpportunitiesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/events': typeof EventsRoute
+  '/journey': typeof JourneyRoute
   '/opportunities': typeof OpportunitiesRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
   '/events': typeof EventsRoute
+  '/journey': typeof JourneyRoute
   '/opportunities': typeof OpportunitiesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$slug' | '/events' | '/opportunities'
+  fullPaths: '/' | '/$slug' | '/events' | '/journey' | '/opportunities'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$slug' | '/events' | '/opportunities'
-  id: '__root__' | '/' | '/$slug' | '/events' | '/opportunities'
+  to: '/' | '/$slug' | '/events' | '/journey' | '/opportunities'
+  id: '__root__' | '/' | '/$slug' | '/events' | '/journey' | '/opportunities'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SlugRoute: typeof SlugRoute
   EventsRoute: typeof EventsRoute
+  JourneyRoute: typeof JourneyRoute
   OpportunitiesRoute: typeof OpportunitiesRoute
 }
 
@@ -76,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/opportunities'
       fullPath: '/opportunities'
       preLoaderRoute: typeof OpportunitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/journey': {
+      id: '/journey'
+      path: '/journey'
+      fullPath: '/journey'
+      preLoaderRoute: typeof JourneyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/events': {
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRoute,
   EventsRoute: EventsRoute,
+  JourneyRoute: JourneyRoute,
   OpportunitiesRoute: OpportunitiesRoute,
 }
 export const routeTree = rootRouteImport
