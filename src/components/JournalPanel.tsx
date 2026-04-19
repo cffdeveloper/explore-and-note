@@ -44,7 +44,7 @@ export function JournalPanel() {
       const { data } = await supabase
         .from("journal_entries").select("*").eq("entry_date", date).maybeSingle();
       if (cancel) return;
-      setEntry(data ?? null);
+      setEntry((data ?? null) as unknown as Entry | null);
       setContent(data?.content ?? "");
     })();
     return () => { cancel = true; };
