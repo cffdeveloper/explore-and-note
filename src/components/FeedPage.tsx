@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SiteHeader } from "@/components/SiteHeader";
 import { CATEGORIES } from "@/lib/blueprint-data";
 import { getPillarIcon } from "@/lib/pillar-icons";
-import { Sparkles, Compass, RefreshCw, ExternalLink, Loader2, Calendar, Target, Coins, MessageSquareQuote, ArrowRightCircle, ChevronDown } from "lucide-react";
+import { CalendarDays, Compass, RefreshCw, ExternalLink, Loader2, Calendar, Target, Coins, MessageSquareQuote, ArrowRightCircle, ChevronDown } from "lucide-react";
 
 type Rec = {
   id: string;
@@ -86,7 +86,7 @@ export function FeedPage({ kind }: { kind: "event" | "opportunity" }) {
 
   const lastUpdated = recs[0]?.created_at ?? null;
   const isEvent = kind === "event";
-  const Icon = isEvent ? Sparkles : Compass;
+  const Icon = isEvent ? CalendarDays : Compass;
   const title = isEvent ? "Events for you" : "Opportunities for you";
   const subtitle = isEvent
     ? "A growing repository — refreshes hourly from Google Search via Gemini. Old events stay; sort by soonest."
