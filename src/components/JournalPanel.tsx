@@ -58,7 +58,7 @@ export function JournalPanel() {
     if (error) { toast.error(error.message); return; }
     toast.success("Saved");
     const { data } = await supabase.from("journal_entries").select("*").eq("entry_date", date).maybeSingle();
-    setEntry(data ?? null);
+    setEntry((data ?? null) as unknown as Entry | null);
   };
 
   const analyze = async () => {
@@ -72,7 +72,7 @@ export function JournalPanel() {
     if (error || data?.error) { toast.error(error?.message || data?.error || "Analysis failed"); return; }
     toast.success("Analyzed");
     const { data: fresh } = await supabase.from("journal_entries").select("*").eq("entry_date", date).maybeSingle();
-    setEntry(fresh ?? null);
+    setEntry((fresh ?? null) as unknown as Entry | null);
   };
 
   const planTomorrow = async () => {
