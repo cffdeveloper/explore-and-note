@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Link as LinkIcon, Paperclip, Trash2, Upload, ExternalLink, FileText, Save, Loader2 } from "lucide-react";
+import { Link as LinkIcon, Paperclip, Trash2, Upload, ExternalLink, FileText, Save, Loader2, Sparkles } from "lucide-react";
 import { LinksPanel } from "@/components/LinksPanel";
+import { toast } from "sonner";
 
 type Attachment = {
   id: string;
@@ -27,6 +28,7 @@ export function AttachmentsPanel({ itemId, label }: { itemId: string; label: str
   const [linkUrl, setLinkUrl] = useState("");
   const [linkTitle, setLinkTitle] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [parsingId, setParsingId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -59,7 +61,10 @@ export function AttachmentsPanel({ itemId, label }: { itemId: string; label: str
   }, [note, loaded, itemId]);
 
   const addLink = async () => {
-    if (!linkUrl.trim()) return;
+    if (!linkUrl.trim()) {
+      toast.error("Paste a URL first");
+      return;
+    }
     let url = linkUrl.trim();
     if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
     const { data, error } = await supabase
@@ -67,23 +72,47 @@ export function AttachmentsPanel({ itemId, label }: { itemId: string; label: str
       .insert({ item_id: itemId, kind: "link", url, title: linkTitle.trim() || url })
       .select()
       .single();
-    if (!error && data) {
-      setAttachments((a) => [data as Attachment, ...a]);
-      setLinkUrl("");
-      setLinkTitle("");
+    if (error) {
+      toast.error(error.message || "Could not save link");
+      return;
     }
+    setAttachments((a) => [data as Attachment, ...a]);
+    setLinkUrl("");
+    setLinkTitle("");
+    toast.success("Link added");
+  };
+
+  const parseFile = async (att: Attachment) => {
+    setParsingId(att.id);
+    const { data, error } = await supabase.functions.invoke("parse-attachment", {
+      body: { attachment_id: att.id },
+    });
+    setParsingId(null);
+    if (error || data?.error) {
+      toast.error(error?.message || data?.error || "Could not parse file");
+      return;
+    }
+    toast.success("AI summary appended to your notes");
+    // refresh note
+    const { data: noteRes } = await supabase
+      .from("item_notes").select("content").eq("item_id", itemId).maybeSingle();
+    if (noteRes?.content) setNote(noteRes.content);
   };
 
   const onFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     setUploading(true);
+    let uploaded = 0;
     for (const file of Array.from(files)) {
       const ext = file.name.split(".").pop() || "bin";
       const path = `${itemId}/${crypto.randomUUID()}.${ext}`;
       const { error: upErr } = await supabase.storage.from("blueprint").upload(path, file, {
         contentType: file.type || undefined,
       });
-      if (upErr) continue;
+      if (upErr) {
+        toast.error(`Upload failed: ${file.name}`);
+        continue;
+      }
       const { data: pub } = supabase.storage.from("blueprint").getPublicUrl(path);
       const { data, error } = await supabase
         .from("item_attachments")
@@ -98,10 +127,21 @@ export function AttachmentsPanel({ itemId, label }: { itemId: string; label: str
         })
         .select()
         .single();
-      if (!error && data) setAttachments((a) => [data as Attachment, ...a]);
+      if (error) {
+        toast.error(`Saving failed: ${file.name}`);
+        continue;
+      }
+      setAttachments((a) => [data as Attachment, ...a]);
+      uploaded++;
+      // Auto-parse images, PDFs, text
+      const m = file.type;
+      if (m.startsWith("image/") || m === "application/pdf" || m.startsWith("text/") || m.includes("json") || m.includes("csv") || m.includes("markdown")) {
+        parseFile(data as Attachment);
+      }
     }
     setUploading(false);
     if (fileRef.current) fileRef.current.value = "";
+    if (uploaded > 0) toast.success(`Uploaded ${uploaded} file${uploaded === 1 ? "" : "s"}`);
   };
 
   const removeAttachment = async (att: Attachment) => {
@@ -213,9 +253,20 @@ export function AttachmentsPanel({ itemId, label }: { itemId: string; label: str
                   <span className="truncate">{a.title || a.url}</span>
                   <ExternalLink size={11} className="opacity-60 flex-shrink-0" />
                 </a>
+                {a.kind === "file" && (
+                  <button
+                    onClick={() => parseFile(a)}
+                    disabled={parsingId === a.id}
+                    className="p-1.5 hover:bg-gold/20 hover:text-gold rounded transition-colors disabled:opacity-50"
+                    aria-label="Parse with AI"
+                    title="Parse with AI → notes"
+                  >
+                    {parsingId === a.id ? <Loader2 size={13} className="animate-spin" /> : <Sparkles size={13} />}
+                  </button>
+                )}
                 <button
                   onClick={() => removeAttachment(a)}
-                  className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-destructive/20 hover:text-destructive rounded transition-opacity"
+                  className="opacity-60 sm:opacity-0 group-hover:opacity-100 p-1.5 hover:bg-destructive/20 hover:text-destructive rounded transition-opacity"
                   aria-label="Remove"
                 >
                   <Trash2 size={13} />
