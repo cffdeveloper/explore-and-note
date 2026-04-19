@@ -135,8 +135,11 @@ export type Database = {
         Row: {
           created_at: string
           date_text: string | null
+          deadline_at: string | null
           id: string
+          intel: Json | null
           kind: string
+          pillar: string | null
           reason: string | null
           source: string | null
           title: string
@@ -145,8 +148,11 @@ export type Database = {
         Insert: {
           created_at?: string
           date_text?: string | null
+          deadline_at?: string | null
           id?: string
+          intel?: Json | null
           kind: string
+          pillar?: string | null
           reason?: string | null
           source?: string | null
           title: string
@@ -155,8 +161,11 @@ export type Database = {
         Update: {
           created_at?: string
           date_text?: string | null
+          deadline_at?: string | null
           id?: string
+          intel?: Json | null
           kind?: string
+          pillar?: string | null
           reason?: string | null
           source?: string | null
           title?: string
