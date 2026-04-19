@@ -1,7 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { CATEGORIES } from "@/lib/blueprint-data";
 import { useState } from "react";
-import { Menu, X, CalendarDays, Compass, Timer } from "lucide-react";
+import { Menu, X, CalendarDays, Compass, Timer, Clock } from "lucide-react";
 
 export function SiteHeader() {
   const location = useLocation();
@@ -57,6 +57,14 @@ export function SiteHeader() {
               <Timer size={12} /> Journey
             </Link>
             <Link
+              to="/schedule"
+              className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                location.pathname === "/schedule" ? "bg-gold text-ink" : "border border-gold/40 text-gold hover:bg-gold/10"
+              }`}
+            >
+              <Clock size={12} /> Schedule
+            </Link>
+            <Link
               to="/events"
               className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors ${
                 location.pathname === "/events" ? "bg-gold text-ink" : "border border-gold/40 text-gold hover:bg-gold/10"
@@ -99,6 +107,9 @@ export function SiteHeader() {
             ))}
             <Link to="/journey" onClick={() => setOpen(false)} className="px-3 py-2 rounded-md text-sm border border-gold/40 text-gold flex items-center gap-2">
               <Timer size={14} /> Journey timer
+            </Link>
+            <Link to="/schedule" onClick={() => setOpen(false)} className="px-3 py-2 rounded-md text-sm border border-gold/40 text-gold flex items-center gap-2">
+              <Clock size={14} /> Schedule
             </Link>
             <Link to="/events" onClick={() => setOpen(false)} className="px-3 py-2 rounded-md text-sm border border-gold/40 text-gold flex items-center gap-2">
               <CalendarDays size={14} /> Events for me
