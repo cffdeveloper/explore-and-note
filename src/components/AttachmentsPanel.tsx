@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Link as LinkIcon, Paperclip, Trash2, Upload, ExternalLink, FileText, Save, Loader2 } from "lucide-react";
+import { LinksPanel } from "@/components/LinksPanel";
 
 type Attachment = {
   id: string;
@@ -119,6 +120,8 @@ export function AttachmentsPanel({ itemId, label }: { itemId: string; label: str
         <h2 className="text-2xl lg:text-3xl font-display font-semibold mb-1">{label}</h2>
         <p className="text-xs text-muted-foreground font-mono">{itemId}</p>
       </div>
+
+      <LinksPanel itemId={itemId} label={label} />
 
       {/* Note editor */}
       <div>
