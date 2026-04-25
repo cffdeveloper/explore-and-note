@@ -76,7 +76,7 @@ Return ONLY a JSON array (no prose, no markdown fences) of 10-15 events. Each it
   "url": string (real working URL — verify via search),
   "date_text": string (human-readable date / window),
   "deadline_at": string (ISO 8601 date when event STARTS, best effort, e.g. "2026-05-12"),
-  "pillar": string (one of: data-science, real-estate, trading, sales, negotiation, public-speaking, law, business, general),
+  "pillar": string (one of: data-science, public-policy, cff, sales, negotiation, public-speaking, law, business, general),
   "reason": string (1-2 sentences: why THIS learner should care, tied to their notes),
   "source": string (host org)
 }
@@ -103,7 +103,7 @@ Return ONLY a JSON array (no prose, no markdown fences) of 10-14 opportunities, 
   "url": string (real working URL — verify via search),
   "date_text": string (deadline or window),
   "deadline_at": string (ISO 8601, best effort),
-  "pillar": string (data-science | real-estate | trading | sales | negotiation | public-speaking | law | business | general),
+  "pillar": string (data-science | public-policy | cff | sales | negotiation | public-speaking | law | business | general),
   "source": string (org or platform),
   "reason": string (1-2 sentences: why this matches THIS learner specifically — quote or paraphrase their notes/journal if possible; if it's a GAP they're missing, say "GAP:" and explain),
   "intel": {
