@@ -35,9 +35,9 @@ const dataScience = c(
   "data-science",
   "Career 1",
   "career",
-  "Data Science, Analysis, Research & Development",
-  "Anchor career — systematize into premium consultancy.",
-  "Your anchor career — the one you already have. The goal is to systematize it into a consultancy, expand your technical range, and position yourself as a premium expert. Every sub-skill compounds your market rate and opens doors across all three careers.",
+  "Data Science, Analysis, Research & Storytelling",
+  "Anchor career — the data spine under your public policy expertise.",
+  "Your anchor career and the data spine that supports your public policy specialty and your CFF day job. Statistics, ML, dashboards and research methods are not for their own sake — they are how you turn KIPPRA, KNBS, CBK and CFF data into the analyses, briefs and visualisations that build your reputation as a Kenya policy expert.",
   [
     sec("1.1", "Foundations of Data Science", [
       sub("data-science", "1.1", "1", "Mathematics & Statistics", [
@@ -1111,8 +1111,8 @@ const business = c(
 
 export const CATEGORIES: Category[] = [
   dataScience,
-  realEstate,
-  trading,
+  publicPolicy,
+  cff,
   sales,
   negotiation,
   speaking,
