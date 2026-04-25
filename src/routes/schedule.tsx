@@ -25,7 +25,7 @@ type Block = {
   sort_order: number;
 };
 
-const CATEGORIES = ["sleep","reset","health","data-science","reading","work","real-estate","trading","skills","planning","other"];
+const CATEGORIES = ["sleep","reset","health","data-science","public-policy","cff","reading","work","skills","planning","other"];
 
 function SchedulePage() {
   const [blocks, setBlocks] = useState<Block[]>([]);
