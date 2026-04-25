@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
     const hasAnyContext = notesText || attsText || journalText;
     const profileBlock = hasAnyContext
       ? `JOURNEY: ${journeyLine}\n\nDAILY JOURNAL (most recent first):\n${journalText || "(none yet)"}\n\nLEARNER NOTES:\n${notesText || "(none yet)"}\n\nLEARNER LINKS/FILES:\n${attsText || "(none yet)"}`
-      : `JOURNEY: ${journeyLine}\n\nNo notes/journal yet. Use a broad mix across all 8 pillars: Data Science, Real Estate, Trading, Sales, Negotiation, Public Speaking, Law, Business.`;
+      : `JOURNEY: ${journeyLine}\n\nNo notes/journal yet. Use a broad mix across all 8 pillars: Data Science, Public Policy & Kenya Research, CFF & SME Finance, Sales, Negotiation, Public Speaking, Law, Business.`;
 
     const today = new Date().toISOString().slice(0, 10);
 
@@ -85,7 +85,7 @@ Avoid repeats of well-known recurring events the learner likely already knows. P
 
       userPrompt = `${profileBlock}\n\nFind upcoming events. Return JSON array only.`;
     } else {
-      systemPrompt = `You are an elite opportunity scout + positioning strategist + GAP ANALYST for a 20-year-old polymath in Kenya on a 10-year sprint across 8 pillars: Data Science, Real Estate, Trading, Sales, Negotiation, Public Speaking, Law, Business.
+      systemPrompt = `You are an elite opportunity scout + positioning strategist + GAP ANALYST for a 20-year-old polymath in Kenya on a 10-year sprint across 8 pillars: Data Science, Public Policy & Kenya Research, CFF & SME Finance, Sales, Negotiation, Public Speaking, Law, Business.
 
 YOUR JOB has THREE layers, in this order:
 
@@ -93,7 +93,7 @@ YOUR JOB has THREE layers, in this order:
 
 2. GAP SCAN — Then scan the WHOLE relevant internet via Google Search (X/Twitter posts, LinkedIn posts, Reddit, Hacker News, GitHub, Product Hunt, news sites, public RFPs, grant pages, accelerator/fellowship pages, hiring pages, bounty platforms, Telegram/Discord communities, government tenders in Kenya/EAC, African VC announcements, prop trading firms, real estate syndication deals, legal-tech, sales SaaS, public speaking circuits like TEDx/Toastmasters open calls). Find CURRENT real opportunities (next 6 months) where this learner can capture money, influence, or compounding leverage.
 
-3. SPOT THE GAPS — Critically: do NOT just match what the learner already does. Surface opportunities in adjacent industries and money flows they are NOT yet exploiting but COULD plausibly enter given their profile (e.g. if they journal about real estate but never about REITs/mortgage tech/Airbnb arbitrage — flag that gap). Cover ALL 8 pillars across the returned set; never let one pillar dominate.
+3. SPOT THE GAPS — Critically: do NOT just match what the learner already does. Surface opportunities in adjacent industries and money flows they are NOT yet exploiting but COULD plausibly enter given their profile (e.g. if they journal about public policy but never about KIPPRA YPP / fellowships / op-eds — flag that gap). Cover ALL 8 pillars across the returned set; never let one pillar dominate.
 
 For EACH opportunity give intel like a McKinsey strategist + an aggressive operator: positioning, exact next 3 actions, money angle, and a copy-paste outreach draft personalized using their journal/notes language.
 
